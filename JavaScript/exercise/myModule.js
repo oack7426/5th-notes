@@ -1,5 +1,5 @@
-function multiplication(a,b){
-  return a*b
+export function double(n) {
+  return n * 2;
 }
 
-module.exports = multiplication;
+export const PI = 3.14

@@ -1,5 +1,6 @@
 ## Unit Test 單元測試
 ### 利用 Jest 寫測試
+先安裝 Jest 套件
 > tips:
 > 詳細 Jest 測試步驟請看 參考文件
 

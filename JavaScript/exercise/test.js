@@ -1,2 +1,3 @@
-var multiplication = require('multiplication');
-console.log(multiplication(4,3));
+import {PI} from './myModule';
+
+console.log(PI);
