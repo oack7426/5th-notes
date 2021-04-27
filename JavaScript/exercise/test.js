@@ -1,2 +1,2 @@
-var multiplication = require('./myModule');
-console.log(multiplication(2,3));
+var multiplication = require('multiplication');
+console.log(multiplication(4,3));
