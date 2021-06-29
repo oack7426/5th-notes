@@ -2,7 +2,6 @@
 均使用 XAMPP 安裝
 https://www.apachefriends.org/zh_tw/index.html
 
-
 ## 啟動 XAMPP
 點一下Start鈕，將它啟用
 ![](https://photo.minwt.com/img/Content/mac/xampp-for-mac/xampp-4-mac_03.jpg)
@@ -24,8 +23,19 @@ https://www.apachefriends.org/zh_tw/index.html
 index 檔案對應的就是預設檔
 ![螢幕快照 2021-06-22 下午10.15.45](https://i.imgur.com/kn8jjMo.png)
 
+#### 清除快取 XAMPP
+![Xnip2021-06-28_21-59-13](https://i.imgur.com/872NoX3.jpg)
 
+#### 建立專案
+http://localhost:8080/test/
+其他頁 例如 data.php http://localhost:8080/test/data.php
+![Xnip2021-06-29_22-38-48](https://i.imgur.com/37RvUX4.jpg)
+
+## php 運作原理
+![Xnip2021-06-28_22-02-42](https://i.imgur.com/0n1Iz0r.jpg)
 ## PHP 基本語法
+###### 筆記參考
+[第 60 天 - PHP 與 MySQL 入門](https://www.coderbridge.com/series/e6ca520d20de4f8497e17d1a8d95245f/posts/2da4b41f85134ac5a4042325b43b85dc)
 ```php
 <?php
   // 包在裡面才會被當作是 php 的內容
@@ -66,6 +76,14 @@ php 印出 `echo` （只印 string）
 php 印出 `var_dump` （把所有型態跟值都印）
 
 request => apache(server) => php => html => apache => response
+### 從前端傳資料給後端：GET 與 POST
+基本的前後端溝通 表單
+![Xnip2021-06-28_22-24-51](https://i.imgur.com/NXtAj2A.jpg)
+#### php $_GET
+> 假設網址是 ?a=&b=，只有傳 key 沒有傳 value，`isset` 的結果依舊會是 `true` 必須連 key 都沒有傳，`isset` 才會是 `false`
+因此針對這種檢查，會推薦使用 `empty` 來檢測，因為 `empty` 可以順便檢測空字串的狀況
+
+![Xnip2021-06-28_22-17-11](https://i.imgur.com/pjjSCMI.jpg)![Xnip2021-06-28_22-17-41](https://i.imgur.com/VxexIzZ.jpg)
 
 ---
 ### 資料庫系統
@@ -91,12 +109,19 @@ Server：專門處理 Request 和 Response 的程序
 
 ### MySQL 語法基礎
 
-### 管理資料庫軟體
+#### 管理資料庫軟體
 phpmyadmin
 
 本機網址 （開啟 XAMPP）
 http://localhost:8080/phpmyadmin/
 
+### 新增使用者
+![Xnip2021-06-29_22-28-59](https://i.imgur.com/LEgBU8u.jpg)
+
+### 建表
+![Xnip2021-06-29_22-30-07](https://i.imgur.com/e1k82tc.jpg)
+![Xnip2021-06-29_22-36-02](https://i.imgur.com/XQnW5q9.jpg)
+![Xnip2021-06-29_22-33-11](https://i.imgur.com/ITfCgLp.jpg)
 
 ![螢幕快照 2021-06-24 下午8.46.19](https://i.imgur.com/kfkPGtF.png)
 ![螢幕快照 2021-06-24 下午8.53.07](https://i.imgur.com/V6OK2Aj.jpg)
@@ -180,3 +205,84 @@ ALTER TABLE old_table_name RENAME TO new_table_name;
 ALTER TABLE table_name ADD unique(`username`);
 ```
 
+#### 從 PHP 連線到 MySQL 資料庫
+>建議事先將伺服器位置、登入帳號、密碼、資料庫名稱等輸入資訊作為變數宣告在開頭
+推薦將PHP連線的程式碼額外寫在單一的PHP檔案內(conn.php)，要使用時再從程式碼中引用即可
+
+
+PHP 與 MySQL 的互動：讀取資料
+PHP 與 MySQL 的互動：新增資料 
+PHP 與 MySQL 的互動：刪除資料
+PHP 與 MySQL 的互動：編輯資料
+
+
+```php
+<?php
+  // 連線資料庫
+  $server_name = 'localhost';
+  $username = 'huli';
+  $password = 'huli';
+  $db_name = 'huli';
+
+  $conn = new mysqli($server_name, $username, $password, $db_name);
+
+  if ($conn->connect_error) {
+    die('資料庫連線錯誤:' . $conn->connect_error);
+  }
+
+  $conn->query('SET NAMES UTF8');
+  $conn->query('SET time_zone = "+8:00"');
+
+  // 新增資料
+  $username = $_POST['username'];
+  $sql = sprintf(
+    "insert into users(username) values('%s')",
+    $username
+  );
+  $result = $conn->query($sql);
+  if (!$result) {
+    die($conn->error);
+  }
+
+  // 讀取資料
+  $result = $conn->query("SELECT * FROM users ORDER BY id ASC;");
+  if (!$result) {
+    die($conn->error);
+  }
+
+  while ($row = $result->fetch_assoc()) {
+    echo "id:" . $row['id'];
+  }
+
+  // 修改資料
+  $id = $_POST['id'];
+  $username = $_POST['username'];
+  $sql = sprintf(
+    "update users set username='%s' where id=%d",
+    $username,
+    $id
+  );
+  echo $sql . '<br>';
+  $result = $conn->query($sql);
+  if (!$result) {
+    die($conn->error);
+  }
+
+  // 刪除資料
+  $id = $_GET['id'];
+  $sql = sprintf(
+    "delete from users where id = %d",
+    $id
+  );
+  $result = $conn->query($sql);
+  if (!$result) {
+    die($conn->error);
+  }
+
+  if ($conn->affected_rows >= 1) {
+    echo '刪除成功';
+  } else {
+    echo '查無資料';
+  }
+?>
+```
