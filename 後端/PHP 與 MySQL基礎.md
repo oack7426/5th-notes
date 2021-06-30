@@ -115,8 +115,8 @@ phpmyadmin
 本機網址 （開啟 XAMPP）
 http://localhost:8080/phpmyadmin/
 
-### 新增使用者
-![Xnip2021-06-29_22-28-59](https://i.imgur.com/LEgBU8u.jpg)
+### 新增使用者 & 同時建表
+![Xnip2021-06-29_23-07-03](https://i.imgur.com/xBnvAkm.jpg)
 
 ### 建表
 ![Xnip2021-06-29_22-30-07](https://i.imgur.com/e1k82tc.jpg)
@@ -209,20 +209,13 @@ ALTER TABLE table_name ADD unique(`username`);
 >建議事先將伺服器位置、登入帳號、密碼、資料庫名稱等輸入資訊作為變數宣告在開頭
 推薦將PHP連線的程式碼額外寫在單一的PHP檔案內(conn.php)，要使用時再從程式碼中引用即可
 
-
-PHP 與 MySQL 的互動：讀取資料
-PHP 與 MySQL 的互動：新增資料 
-PHP 與 MySQL 的互動：刪除資料
-PHP 與 MySQL 的互動：編輯資料
-
-
-```php
+conn.php 
+``` php
 <?php
-  // 連線資料庫
-  $server_name = 'localhost';
-  $username = 'huli';
-  $password = 'huli';
-  $db_name = 'huli';
+  $server_name = 'localhost';  //伺服器位置
+  $username = 'annie'; //登入帳號
+  $password = 'annie'; //密碼
+  $db_name = 'annie'; //資料庫名稱
 
   $conn = new mysqli($server_name, $username, $password, $db_name);
 
@@ -230,59 +223,88 @@ PHP 與 MySQL 的互動：編輯資料
     die('資料庫連線錯誤:' . $conn->connect_error);
   }
 
-  $conn->query('SET NAMES UTF8');
-  $conn->query('SET time_zone = "+8:00"');
+  $conn->query('SET NAMES UTF8'); // 設定編碼 UTF8
+  $conn->query('SET time_zone = "+8:00"'); //設定時區為台灣
+?>
+```
 
-  // 新增資料
-  $username = $_POST['username'];
-  $sql = sprintf(
-    "insert into users(username) values('%s')",
-    $username
-  );
-  $result = $conn->query($sql);
-  if (!$result) {
-    die($conn->error);
-  }
+##### PHP 與 MySQL 的互動：讀取資料
+data.php
+```php
+<?php
+  require_once('conn.php');
 
-  // 讀取資料
-  $result = $conn->query("SELECT * FROM users ORDER BY id ASC;");
-  if (!$result) {
-    die($conn->error);
+  $result = $conn->query("SELECT * FROM users");
+  if (!$result) { //如果空值
+    die($conn->error); //die 跳出程式不執行 
+    //$conn 的定義在 conn.php
+    //$conn->error 顯示錯誤資訊
   }
 
   while ($row = $result->fetch_assoc()) {
-    echo "id:" . $row['id'];
-  }
-
-  // 修改資料
-  $id = $_POST['id'];
-  $username = $_POST['username'];
-  $sql = sprintf(
-    "update users set username='%s' where id=%d",
-    $username,
-    $id
-  );
-  echo $sql . '<br>';
-  $result = $conn->query($sql);
-  if (!$result) {
-    die($conn->error);
-  }
-
-  // 刪除資料
-  $id = $_GET['id'];
-  $sql = sprintf(
-    "delete from users where id = %d",
-    $id
-  );
-  $result = $conn->query($sql);
-  if (!$result) {
-    die($conn->error);
-  }
-
-  if ($conn->affected_rows >= 1) {
-    echo '刪除成功';
-  } else {
-    echo '查無資料';
+    echo "id:" . $row['id'] . '<br>';
+    echo "name:" . $row['name'] . '<br>';
   }
 ?>
 ```
+
+##### PHP 與 MySQL 的互動：新增資料 
+單純塞入資料
+![Xnip2021-06-30_22-36-28](https://i.imgur.com/xuiF4TB.jpg)
+data.php
+```php
+<?php
+  require_once('conn.php');
+
+  $result = $conn->query("insert into users(name) values('apple')");
+  // 在 users 的資料表新增 name = apple 的資料  呼叫多次就會塞入多次同筆資料
+  if (!$result) {
+    die($conn->error);
+  }
+  print_r($result) 
+  //會印出 1 代表 true 成功新增資料
+?>
+```
+透過表單塞入資料
+![Xnip2021-06-30_22-44-35](https://i.imgur.com/Wx5FBvj.jpg)
+![Xnip2021-06-30_22-44-43](https://i.imgur.com/MWUgy1N.jpg)
+![Xnip2021-06-30_22-44-57](https://i.imgur.com/O9DKymf.jpg)
+index.php
+```html
+<form method="POST" action="data.php">
+ user:<input name="name">
+  <input type="submit">
+</form>
+```
+
+data.php
+```php
+<?php
+  require_once('conn.php');
+
+  if (empty($_POST['name'])) {
+    die('請輸入 name');
+  }
+
+  $name = $_POST['name'];
+  $sql = sprintf(
+    "insert into users(name) values('%s')",
+    $name
+  );
+  $result = $conn->query($sql);
+  if (!$result) {
+    die($conn->error);
+  }
+  echo "新增成功"
+
+  header("Location: index.php"); // 跳轉回首頁
+?>
+?>
+
+```
+
+
+PHP 與 MySQL 的互動：刪除資料
+PHP 與 MySQL 的互動：編輯資料
+
+
