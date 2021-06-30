@@ -249,7 +249,7 @@ data.php
 ```
 
 ##### PHP 與 MySQL 的互動：新增資料 
-單純塞入資料
+###### 單純塞入資料
 ![Xnip2021-06-30_22-36-28](https://i.imgur.com/xuiF4TB.jpg)
 data.php
 ```php
@@ -265,7 +265,7 @@ data.php
   //會印出 1 代表 true 成功新增資料
 ?>
 ```
-透過表單塞入資料
+###### 透過表單塞入資料
 ![Xnip2021-06-30_22-44-35](https://i.imgur.com/Wx5FBvj.jpg)
 ![Xnip2021-06-30_22-44-43](https://i.imgur.com/MWUgy1N.jpg)
 ![Xnip2021-06-30_22-44-57](https://i.imgur.com/O9DKymf.jpg)
@@ -299,12 +299,95 @@ data.php
 
   header("Location: index.php"); // 跳轉回首頁
 ?>
-?>
+```
 
+##### PHP 與 MySQL 的互動：刪除資料
+點擊刪除按鈕刪除資料
+![Xnip2021-06-30_23-08-49](https://i.imgur.com/KKYJ1il.jpg)![Xnip2021-06-30_23-09-04](https://i.imgur.com/rpkV1iX.jpg)![Xnip2021-06-30_23-09-19](https://i.imgur.com/Xxj0lI8.jpg)
+index.php
+```php
+<?php
+require_once('conn.php');
+
+$result = $conn->query("SELECT * FROM users ORDER BY id ASC;");
+if(!$result){
+  die($conn->error);
+}
+while ($row = $result->fetch_assoc()){
+  echo "id:" . $row['id'];
+  echo "<a href='delete.php?id=".$row['id']."'>刪除</a>".'<br>';
+  echo "name:" . $row['name'] . '<br>';
+}
+
+?>
+```
+delete.php
+```php
+<?php
+  require_once('conn.php');
+
+  if (empty($_GET['id'])) {
+    die('請輸入 id');
+  }
+
+  $id = $_GET['id'];
+  $sql = sprintf(
+    "delete from users where id = %d",
+    $id
+  );
+  echo $sql . '<br>';
+  $result = $conn->query($sql);
+  if (!$result) {
+    die($conn->error);
+  }
+
+  if ($conn->affected_rows >= 1) {
+    echo '刪除成功';
+  } else {
+    echo '查無資料';
+  }
+?>
 ```
 
 
-PHP 與 MySQL 的互動：刪除資料
-PHP 與 MySQL 的互動：編輯資料
+##### PHP 與 MySQL 的互動：編輯資料
+![Xnip2021-06-30_23-14-31](https://i.imgur.com/OHpXjiA.jpg)
+![Xnip2021-06-30_23-14-45](https://i.imgur.com/S4Z6wXC.jpg)![Xnip2021-06-30_23-14-59](https://i.imgur.com/UWK88KZ.jpg)
+
+index
+```html
+<form method="POST" action="update.php">
+id:<input name="id">
+ user:<input name="name">
+  <input type="submit">
+</form>
+```
+
+update.php
+```php
+<?php
+  require_once('conn.php');
+
+  if (empty($_POST['id']) || empty($_POST['name'])) {
+    die('請輸入 id 與 name');
+  }
+
+  $id = $_POST['id'];
+  $name = $_POST['name'];
+  $sql = sprintf(
+    "update users set name='%s' where id=%d",
+    $name,
+    $id
+  );
+  echo $sql . '<br>';
+  $result = $conn->query($sql);
+  if (!$result) {
+    die($conn->error);
+  }
+
+  // header("Location: index.php");
+?>
+
+```
 
 
